@@ -285,7 +285,7 @@ def route_message():
         url = routing_map[first_word]
         return redirect(url_for(url_for,  data=json.dumps(data)))
     else:
-        return jsonify({'status': 'error', 'message': first_word, 'url_for': url }), 400
+        return jsonify({'status': 'error', 'message': {first_word} }), 400
 
 
 # Main index route

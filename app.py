@@ -11,21 +11,27 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
-# Initialize Firebase Admin SDK
-firebase_cred_str = os.getenv('firebase')
-if firebase_cred_str:
-    firebase_cred = json.loads(firebase_cred_str)
-    cred = credentials.Certificate(firebase_cred)
-    firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://project-zeus-98a8c-default-rtdb.firebaseio.com/'
-    })
-
 # Initialize Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'zeus')  # Replace with a random secret key
+print(f"Flask secret key set: {app.secret_key}")
 
-# Path to the OAuth 2.0 client secrets file
-client_secrets = os.getenv('oauth')
+# Load OAuth client configuration from environment variable
+client_secrets_str = os.getenv('oauth')
+print(f"Raw OAuth client secrets string: {client_secrets_str}")
+
+if client_secrets_str:
+    try:
+        client_secrets = json.loads(client_secrets_str)
+        print("Parsed OAuth client secrets:", client_secrets)
+        print("Type of parsed client secrets:", type(client_secrets))
+    except json.JSONDecodeError as e:
+        print(f"Error decoding OAuth client secrets: {e}")
+        client_secrets = None
+else:
+    print("OAuth client secrets not found")
+    client_secrets = None
+
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
 # Function to extract user identifier

@@ -182,7 +182,6 @@ def checkin():
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
 def save(number):
-    credentials = load_credentials()
     id = "Z" + number[:4]
     try:
         credentials = load_credentials()
@@ -236,29 +235,13 @@ def oauth2callback():
 
 
 def save_credentials(credentials):
-    # Save the credentials (including the refresh token) to environment variables
-    os.environ['TOKEN'] = credentials.token
-    if credentials.refresh_token:
-        os.environ['REFRESH_TOKEN'] = credentials.refresh_token
-    os.environ['TOKEN_URI'] = credentials.token_uri
-    os.environ['CLIENT_ID'] = credentials.client_id
-    os.environ['CLIENT_SECRET'] = credentials.client_secret
-    os.environ['SCOPES'] = json.dumps(credentials.scopes)
+    db.reference('/oauth_credentials').set(credentials.to_json())
 
 def load_credentials():
-    # Load the credentials from environment variables
-    if 'TOKEN' in os.environ:
-        info = {
-            'token': os.environ['TOKEN'],
-            'refresh_token': os.environ.get('REFRESH_TOKEN'),
-            'token_uri': os.environ['TOKEN_URI'],
-            'client_id': os.environ['CLIENT_ID'],
-            'client_secret': os.environ['CLIENT_SECRET'],
-            'scopes': json.loads(os.environ['SCOPES'])
-        }
-        credentials = Credentials.from_authorized_user_info(info, SCOPES)
-        return credentials
-    return None
+    credentials_ref = db.reference('/oauth_credentials')
+    credentials_json = credentials_ref.get()
+    return Credentials.from_json(credentials_json) 
+
 
 # Main index route
 @app.route('/')

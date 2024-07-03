@@ -187,7 +187,7 @@ def authorize():
 @app.route('/oauth2callback')
 def oauth2callback():
     state = session['state']
-    flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
+    flow = Flow.from_client_secrets_file(client_secrets, scopes=SCOPES, state=state)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
     authorization_response = request.url

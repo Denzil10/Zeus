@@ -13,11 +13,12 @@ from googleapiclient.discovery import build
 
 # Initialize Firebase Admin SDK
 firebase_cred_str = os.getenv('firebase')
-firebase_cred = json.loads(firebase_cred_str)
-cred = credentials.Certificate(firebase_cred)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://project-zeus-98a8c-default-rtdb.firebaseio.com/'
-})
+if firebase_cred_str:
+    firebase_cred = json.loads(firebase_cred_str)
+    cred = credentials.Certificate(firebase_cred)
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://project-zeus-98a8c-default-rtdb.firebaseio.com/'
+    })
 
 # Initialize Flask application
 app = Flask(__name__)

@@ -25,7 +25,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'zeus')  # Replace with a random secret key
 
 # Path to the OAuth 2.0 client secrets file
-CLIENT_SECRETS_FILE = os.getenv('oauth')
+client_secrets = os.getenv('oauth')
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
 # Function to extract user identifier
@@ -166,7 +166,8 @@ def checkin():
 # OAuth authorization route
 @app.route('/authorize')
 def authorize():
-    flow = Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, scopes=SCOPES)
+    if client_secrets:
+        flow = Flow.from_client_config(client_secrets, scopes=SCOPES)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
     authorization_url, state = flow.authorization_url(

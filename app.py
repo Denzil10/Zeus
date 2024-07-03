@@ -18,13 +18,10 @@ print(f"Flask secret key set: {app.secret_key}")
 
 # Load OAuth client configuration from environment variable
 client_secrets_str = os.getenv('oauth')
-print(f"Raw OAuth client secrets string: {client_secrets_str}")
 
 if client_secrets_str:
     try:
         client_secrets = json.loads(client_secrets_str)
-        print("Parsed OAuth client secrets:", client_secrets)
-        print("Type of parsed client secrets:", type(client_secrets))
     except json.JSONDecodeError as e:
         print(f"Error decoding OAuth client secrets: {e}")
         client_secrets = None
@@ -207,7 +204,7 @@ def oauth2callback():
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
-def save_contact():
+def save():
     data = request.json
     query = data.get('query')
 
@@ -237,7 +234,7 @@ def save_contact():
         }
 
         saved_contact = service.people().createContact(body=contact).execute()
-
+        print(f"Saved less goo")
         return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
 
     except Exception as e:

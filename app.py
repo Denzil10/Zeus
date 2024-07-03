@@ -232,7 +232,7 @@ def oauth2callback():
     credentials = flow.credentials
     print(credentials)
     save_credentials(credentials)
-    # return redirect(url_for('register'))
+    return f"credentials + {credentials}", 200
 
 
 def save_credentials(credentials):

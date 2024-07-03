@@ -11,6 +11,14 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
+# Initialize Firebase Admin SDK
+firebase_cred_str = os.getenv('firebase')
+firebase_cred = json.loads(firebase_cred_str)
+cred = credentials.Certificate(firebase_cred)
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://project-zeus-98a8c-default-rtdb.firebaseio.com/'
+})
+
 # Initialize Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'zeus')  # Replace with a random secret key
@@ -226,7 +234,7 @@ def oauth2callback():
     credentials = flow.credentials
     print(credentials)
     save_credentials(credentials)
-    return redirect(url_for('register'))
+    # return redirect(url_for('register'))
 
 
 def save_credentials(credentials):

@@ -107,26 +107,77 @@ def register():
 
     info = (
         "User Card😎\n"
+        f"Identifier: {user_data['identifier']}\n"
         f"Level: {user_data['level']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
-    return jsonify({"replies": [{"message": response_message + info + str(contact_status)}]}), 200
+    return jsonify({"replies": [{"message": response_message + info}]}), 200
 
-#  Load OAuth client configuration from environment variable
-client_secrets_str = os.getenv('oauth')
-if client_secrets_str:
-    try:
-        client_secrets = json.loads(client_secrets_str)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding OAuth client secrets: {e}")
-        client_secrets = None
-else:
-    print("OAuth client secrets not found")
-    client_secrets = None
+# Route to retrieve user info
+@app.route('/info', methods=['POST'])
+def info():
+    data = request.json
+    query = data.get('query')
 
-SCOPES = ['https://www.googleapis.com/auth/contacts']
+    user_identifier = get_user(query)
+    users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
+    user_snapshot = users_ref.get()
+
+    if not user_snapshot:
+        return jsonify({"replies": [{"message": "Please register first"}]}), 400
+
+    user_data = list(user_snapshot.values())[0]
+
+    info_message = (
+        "Info😎\n"
+        f"Username: {user_data['username']}\n"
+        f"Level: {user_data['level']}\n"
+        f"Streak: {user_data['streak']}\n"
+        f"Best Streak: {user_data['bestStreak']}\n"
+        f"Referral Code: {user_data['referralCode']}\n"
+        f"Referral Count: {user_data['referralCount']}\n"
+    )
+
+    return jsonify({"replies": [{"message": info_message}]}), 200
+
+# Route to perform daily check-in
+@app.route('/checkin', methods=['POST'])
+def checkin():
+    data = request.json
+    query = data.get('query')
+
+    user_identifier = get_user(query)
+    users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
+    user_snapshot = users_ref.get()
+
+    if not user_snapshot:
+        return jsonify({"replies": [{"message": "Please register first"}]}), 400
+
+    user_data = list(user_snapshot.values())[0]
+    now = datetime.now(timezone.utc)
+    today_date = now.strftime('%Y-%m-%d')
+    yesterday = now - timedelta(days=1)
+    yes_date = yesterday.strftime('%Y-%m-%d')
+
+    if user_data['lastCheckInDate'] == today_date:
+        return jsonify({"replies": [{"message": "✅ Check-in has been already done"}]}), 200
+    elif user_data['lastCheckInDate'] != yes_date:
+        user_data['level'] = 1
+        user_data['streak'] = 1
+        msg = f"🔴 You broke your streak. Starting from level 1"
+    else:
+        user_data['level'] += 1
+        user_data['lastCheckInDate'] = today_date
+        user_data['streak'] += 1
+        if user_data['streak'] > user_data['bestStreak']:
+            user_data['bestStreak'] = user_data['streak']
+        msg = f"🎉 Reached level {user_data['level']}"
+
+    db.reference('users').child(list(user_snapshot.keys())[0]).update(user_data)
+
+    return jsonify({"replies": [{"message": msg}]}), 200
 
 # Save OAuth credentials to Firebase
 def save_credentials(credentials):
@@ -214,6 +265,26 @@ def save(number):
     except Exception as e:
         print(f"Error saving contact: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/any', methods=['POST'])
+def route_message():
+    data = request.json
+    message = data.get('message', '')
+    first_word = message.split()[0].lower() if message else ''
+
+    # Define the routing map
+    routing_map = {
+        'register': 'register',
+        'info': 'info',
+        'checkin': 'checkin'
+    }
+
+    # Route to the corresponding endpoint
+    if first_word in routing_map:
+        return redirect(url_for(routing_map[first_word], data=json.dumps(data)))
+    else:
+        return jsonify({'status': 'error', 'message': 'Invalid command'}), 400
+
 
 # Main index route
 @app.route('/')

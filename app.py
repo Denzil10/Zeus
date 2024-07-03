@@ -238,17 +238,27 @@ def oauth2callback():
 
 
 def save_credentials(credentials):
-    # Save the credentials (including the refresh token) to a secure location
-    with open('token.json', 'w') as token_file:
-        token_file.write(credentials.to_json())
+    # Save the credentials (including the refresh token) to environment variables
+    os.environ['TOKEN'] = credentials.token
+    os.environ['REFRESH_TOKEN'] = credentials.refresh_token
+    os.environ['TOKEN_URI'] = credentials.token_uri
+    os.environ['CLIENT_ID'] = credentials.client_id
+    os.environ['CLIENT_SECRET'] = credentials.client_secret
+    os.environ['SCOPES'] = json.dumps(credentials.scopes)
 
 def load_credentials():
-    # Load the credentials from the secure location
-    if os.path.exists('token.json'):
-        with open('token.json', 'r') as token_file:
-            token_data = token_file.read()
-            credentials = Credentials.from_authorized_user_info(json.loads(token_data), SCOPES)
-            return credentials
+    # Load the credentials from environment variables
+    if 'TOKEN' in os.environ:
+        info = {
+            'token': os.environ['TOKEN'],
+            'refresh_token': os.environ['REFRESH_TOKEN'],
+            'token_uri': os.environ['TOKEN_URI'],
+            'client_id': os.environ['CLIENT_ID'],
+            'client_secret': os.environ['CLIENT_SECRET'],
+            'scopes': json.loads(os.environ['SCOPES'])
+        }
+        credentials = Credentials.from_authorized_user_info(info, SCOPES)
+        return credentials
     return None
 
 # Main index route

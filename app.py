@@ -22,7 +22,6 @@ firebase_admin.initialize_app(cred, {
 # Initialize Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'zeus')  # Replace with a random secret key
-print(f"Flask secret key set: {app.secret_key}")
 
 # Load OAuth client configuration from environment variable
 client_secrets_str = os.getenv('oauth')
@@ -70,13 +69,12 @@ def register():
 
     user_identifier = get_user(query)
     # if number save it 
-    save(user_identifier)
+    contact_status = save(user_identifier)
+    print(f"this is the contact status {contact_status}")
     id = "Z" + user_identifier[:4]
-    
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
-
     if user_snapshot:
         return jsonify({"replies": [{"message": "❌ User already exists"}]}), 400
 
@@ -112,9 +110,8 @@ def register():
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
-
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
-    return jsonify({"replies": [{"message": response_message + info}]}), 200
+    return jsonify({"replies": [{"message": response_message + info + contact_status}]}), 200
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])
@@ -200,7 +197,7 @@ def save(number):
         }
 
         saved_contact = service.people().createContact(body=contact).execute()
-        print("Contact saved successfully")
+        print(f"saved successfully")
         return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
 
     except Exception as e:

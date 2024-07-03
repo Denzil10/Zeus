@@ -112,7 +112,8 @@ def register():
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
-    return jsonify({"replies": [{"message": response_message + info + {str(contact_status)}  }]}), 200
+    return jsonify({"replies": [{"message": response_message + info + str(contact_status)}]}), 200
+
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])
@@ -198,10 +199,11 @@ def save(number):
         }
 
         saved_contact = service.people().createContact(body=contact).execute()
-        return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
+        print(saved_contact)
+        return saved_contact, 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return {"status": "error", "message": str(e)}
 
 # OAuth authorization route
 @app.route('/authorize')

@@ -192,11 +192,8 @@ def oauth2callback():
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
-def save():
-    data = request.json
-    number = data.get('number', '')
-    formatted_number = ''.join(filter(str.isdigit, number))
-    id = "Z" + formatted_number[:4]
+def save(number):
+    id = "Z" + number[:4]
 
     try:
         credentials = load_credentials()

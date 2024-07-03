@@ -226,11 +226,10 @@ def oauth2callback():
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
     authorization_response = request.url
-    # token = flow.fetch_token(authorization_response=authorization_response)
+    flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
     save_credentials(credentials)
-    return f"credentials + {credentials}", 200
-
+    
 def save_credentials(credentials):
     db.reference('/oauth_credentials').set(credentials.to_authorized_user_info())
 

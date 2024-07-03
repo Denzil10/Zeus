@@ -26,6 +26,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'zeus')  # Replace with a random 
 # Load OAuth client configuration from environment variable
 client_secrets_str = os.getenv('oauth')
 
+
 if client_secrets_str:
     try:
         client_secrets = json.loads(client_secrets_str)
@@ -53,8 +54,9 @@ def generate_referral_code():
 
 # Route to register a user
 @app.route('/register', methods=['POST'])
-def register():
-    data = request.json
+def register(data):
+    if not data:
+        data = request.json
     query = data.get('query')
 
     message = query.get('message', '')
@@ -117,8 +119,9 @@ def register():
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])
-def info():
-    data = request.json
+def info(data):
+    if not data:
+        data = request.json
     query = data.get('query')
 
     user_identifier = get_user(query)
@@ -144,8 +147,9 @@ def info():
 
 # Route to perform daily check-in
 @app.route('/checkin', methods=['POST'])
-def checkin():
-    data = request.json
+def checkin(data):
+    if not data:
+        data = request.json
     query = data.get('query')
 
     user_identifier = get_user(query)
@@ -269,23 +273,18 @@ def save(number):
 @app.route('/any', methods=['POST'])
 def route_message():
     data = request.json
-    message = data.get('message', '')
+    query = data.get('query')
+    message = query.get('message')
     first_word = message.split()[0].lower() if message else ''
 
-    # Define the routing map
-    routing_map = {
-        'register:': 'register',
-        'register': 'register',
-        'info': 'info',
-        'checkin': 'checkin'
-    }
-
-    # Route to the corresponding endpoint
-    if first_word in routing_map:
-        url = routing_map[first_word]
-        return redirect(url_for(url_for,  data=json.dumps(data)))
+    if first_word == 'register:':
+        return register(data)
+    elif first_word == 'info':
+        return info(data)
+    elif first_word == 'checkin':
+        return checkin(data)
     else:
-        return jsonify({'status': 'error', 'message': {first_word} }), 400
+        return jsonify({'status': 'error', 'message': f'Unknown command: {first_word}'}), 400
 
 
 # Main index route

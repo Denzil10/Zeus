@@ -36,7 +36,8 @@ def get_user(query):
     if query.get('isGroup'):
         return query.get('groupParticipant', '').replace(' ', '')
     else:
-        return query.get('sender').replace(' ', '')
+        sender = query.get('sender', '')
+        return ''.join(c for c in sender if c.isdigit())
 
 # Function to generate referral code
 def generate_referral_code():
@@ -60,7 +61,12 @@ def register():
     referral_code = generate_referral_code()
 
     user_identifier = get_user(query)
-    users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
+    # if number save it 
+    save(user_identifier)
+    id = "Z" + user_identifier[:4]
+    
+    
+    users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
 
     if user_snapshot:
@@ -79,7 +85,7 @@ def register():
         level = 1
 
     user_data = {
-        'identifier': user_identifier,
+        'identifier': id,
         'username': username,
         'referrerCode': referrer_code,
         'level': level,
@@ -166,16 +172,47 @@ def checkin():
 
     return jsonify({"replies": [{"message": msg}]}), 200
 
+# Route to save a contact to Google Contacts
+@app.route('/save', methods=['POST'])
+def save(number):
+    credentials = load_credentials()
+    id = "Z" + number[:4]
+    try:
+        # Get the authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Authorization header is missing'}), 401
+
+        token = auth_header.split(" ")[1]
+        print(token)
+    
+        # Create credentials object from the token
+        credentials = Credentials(token)
+        service = build('people', 'v1', credentials=credentials)
+
+        contact = {
+            'names': [{'givenName': id}],
+            'phoneNumbers': [{'value': number, 'type': 'mobile'}]
+        }
+
+        saved_contact = service.people().createContact(body=contact).execute()
+        print("Contact saved successfully")
+        return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
+
+    except Exception as e:
+        print(f"Error saving contact: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 # OAuth authorization route
 @app.route('/authorize')
 def authorize():
-    if client_secrets:
-        flow = Flow.from_client_config(client_secrets, scopes=SCOPES)
+    flow = Flow.from_client_config(client_secrets, scopes=SCOPES)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
     authorization_url, state = flow.authorization_url(
-        access_type='online',
-        include_granted_scopes='true')
+        access_type='offline',
+        include_granted_scopes='true'
+    )
 
     session['state'] = state
     return redirect(authorization_url)
@@ -200,46 +237,23 @@ def oauth2callback():
         'scopes': credentials.scopes
     }
 
-    return redirect(url_for('save'))
+    save_credentials(credentials)
+    return redirect(url_for('register'))
 
-# Route to save a contact to Google Contacts
-@app.route('/save', methods=['POST'])
-def save():
-    data = request.json
-    query = data.get('query')
 
-    user_identifier = get_user(query)
-    number = ''.join(filter(str.isdigit, user_identifier))
-    # user_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
-    # user_snapshot = user_ref.get()
+def save_credentials(credentials):
+    # Save the credentials (including the refresh token) to a secure location
+    with open('token.json', 'w') as token_file:
+        token_file.write(credentials.to_json())
 
-    # if not user_snapshot:
-    #     return jsonify({"replies": [{"message": "Please register first"}]}), 400
-
-    # user_data = list(user_snapshot.values())[0]
-    
-    id = "Z" + user_identifier[:4]
-
-    try:
-        credentials_data = session.get('credentials')
-        if not credentials_data:
-            return jsonify({"replies": [{"message": "No valid credentials found. Please authorize first."}]}), 400
-
-        credentials = Credentials(**credentials_data)
-        service = build('people', 'v1', credentials=credentials)
-
-        contact = {
-            'names': [{'givenName': id}],
-            'phoneNumbers': [{'value': number, 'type': 'mobile'}]
-        }
-
-        saved_contact = service.people().createContact(body=contact).execute()
-        print(f"Saved less goo")
-        return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
-
-    except Exception as e:
-        print(f"Error saving contact: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+def load_credentials():
+    # Load the credentials from the secure location
+    if os.path.exists('token.json'):
+        with open('token.json', 'r') as token_file:
+            token_data = token_file.read()
+            credentials = Credentials.from_authorized_user_info(json.loads(token_data), SCOPES)
+            return credentials
+    return None
 
 # Main index route
 @app.route('/')

@@ -204,7 +204,7 @@ def save(number):
 
         contact = {
             'names': [{'givenName': id}],
-            'phoneNumbers': [{'value': formatted_number, 'type': 'mobile'}]
+            'phoneNumbers': [{'value': number, 'type': 'mobile'}]
         }
 
         saved_contact = service.people().createContact(body=contact).execute()

@@ -282,9 +282,10 @@ def route_message():
 
     # Route to the corresponding endpoint
     if first_word in routing_map:
-        return redirect(url_for(routing_map[first_word], data=json.dumps(data)))
+        url = routing_map[first_word]
+        return redirect(url_for(url_for,  data=json.dumps(data)))
     else:
-        return jsonify({'status': 'error', 'message': 'Invalid command'}), 400
+        return jsonify({'status': 'error', 'message': first_word, 'url_for': url }), 400
 
 
 # Main index route

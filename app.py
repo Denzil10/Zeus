@@ -274,6 +274,7 @@ def route_message():
 
     # Define the routing map
     routing_map = {
+        'register:': 'register',
         'register': 'register',
         'info': 'info',
         'checkin': 'checkin'

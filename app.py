@@ -111,7 +111,7 @@ def register():
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
-    return jsonify({"replies": [{"message": response_message + info + contact_status}]}), 200
+    return jsonify({"replies": [{"message": f"{response_message + info + contact_status}" }]}), 200
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])

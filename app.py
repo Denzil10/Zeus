@@ -231,7 +231,7 @@ def oauth2callback():
     save_credentials(credentials)
     
 def save_credentials(credentials):
-    db.reference('/oauth_credentials').set(credentials.to_authorized_user_info())
+    db.reference('/oauth_credentials').set(credentials.to_json())
 
 def load_credentials():
     credentials_ref = db.reference('/oauth_credentials')

@@ -114,95 +114,50 @@ def register():
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
     return jsonify({"replies": [{"message": response_message + info + str(contact_status)}]}), 200
 
-
-# Route to retrieve user info
-@app.route('/info', methods=['POST'])
-def info():
-    data = request.json
-    query = data.get('query')
-
-    user_identifier = get_user(query)
-    users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
-    user_snapshot = users_ref.get()
-
-    if not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register first"}]}), 400
-
-    user_data = list(user_snapshot.values())[0]
-
-    info_message = (
-        "Info😎\n"
-        f"Username: {user_data['username']}\n"
-        f"Level: {user_data['level']}\n"
-        f"Streak: {user_data['streak']}\n"
-        f"Best Streak: {user_data['bestStreak']}\n"
-        f"Referral Code: {user_data['referralCode']}\n"
-        f"Referral Count: {user_data['referralCount']}\n"
-    )
-
-    return jsonify({"replies": [{"message": info_message}]}), 200
-
-# Route to perform daily check-in
-@app.route('/checkin', methods=['POST'])
-def checkin():
-    data = request.json
-    query = data.get('query')
-
-    user_identifier = get_user(query)
-    users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
-    user_snapshot = users_ref.get()
-
-    if not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register first"}]}), 400
-
-    user_data = list(user_snapshot.values())[0]
-    now = datetime.now(timezone.utc)
-    today_date = now.strftime('%Y-%m-%d')
-    yesterday = now - timedelta(days=1)
-    yes_date = yesterday.strftime('%Y-%m-%d')
-
-    if user_data['lastCheckInDate'] == today_date:
-        return jsonify({"replies": [{"message": "✅ Check-in has been already done"}]}), 200
-    elif user_data['lastCheckInDate'] != yes_date:
-        user_data['level'] = 1
-        user_data['streak'] = 1
-        msg = f"🔴 You broke your streak. Starting from level 1"
-    else:
-        user_data['level'] += 1
-        user_data['lastCheckInDate'] = today_date
-        user_data['streak'] += 1
-        if user_data['streak'] > user_data['bestStreak']:
-            user_data['bestStreak'] = user_data['streak']
-        msg = f"🎉 Reached level {user_data['level']}"
-
-    db.reference('users').child(list(user_snapshot.keys())[0]).update(user_data)
-
-    return jsonify({"replies": [{"message": msg}]}), 200
-
-# Route to save a contact to Google Contacts
-@app.route('/save', methods=['POST'])
-def save(number):
-    id = "Z" + number[:4]
+#  Load OAuth client configuration from environment variable
+client_secrets_str = os.getenv('oauth')
+if client_secrets_str:
     try:
-        credentials = load_credentials()
+        client_secrets = json.loads(client_secrets_str)
+    except json.JSONDecodeError as e:
+        print(f"Error decoding OAuth client secrets: {e}")
+        client_secrets = None
+else:
+    print("OAuth client secrets not found")
+    client_secrets = None
 
-        if not credentials or not credentials.valid:
-            raise RuntimeError("credentials not valid") 
-        
-        # Create credentials object from the token
-        service = build('people', 'v1', credentials=credentials)
+SCOPES = ['https://www.googleapis.com/auth/contacts']
 
-        contact = {
-            'names': [{'givenName': id}],
-            'phoneNumbers': [{'value': number, 'type': 'mobile'}]
-        }
+# Save OAuth credentials to Firebase
+def save_credentials(credentials):
+    ref = db.reference('oauth_credentials')
+    ref.set({
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    })
 
-        saved_contact = service.people().createContact(body=contact).execute()
-        print(saved_contact)
-        return saved_contact, 200
+# Load OAuth credentials from Firebase
+def load_credentials():
+    ref = db.reference('oauth_credentials')
+    stored_credentials = ref.get()
 
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    if stored_credentials:
+        credentials = Credentials(
+            stored_credentials['token'],
+            refresh_token=stored_credentials.get('refresh_token'),
+            token_uri=stored_credentials['token_uri'],
+            client_id=stored_credentials['client_id'],
+            client_secret=stored_credentials['client_secret']
+        )
+        # if credentials.expired:
+            # credentials.refresh(Request())
+        return credentials
+    else:
+        raise RuntimeError("Credentials not found in Firebase Realtime Database")
 
 # OAuth authorization route
 @app.route('/authorize')
@@ -221,7 +176,10 @@ def authorize():
 # OAuth callback route
 @app.route('/oauth2callback')
 def oauth2callback():
-    state = session['state']
+    state = session.get('state')
+    if not state or state != request.args.get('state'):
+        return jsonify({"error": "State mismatch error"}), 400
+
     flow = Flow.from_client_config(client_secrets, scopes=SCOPES, state=state)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
@@ -229,27 +187,36 @@ def oauth2callback():
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
     save_credentials(credentials)
-    
-def save_credentials(credentials):
-    db.reference('/oauth_credentials').set(credentials.to_json())
 
-def load_credentials():
-    ref = db.reference('/oauth_credentials')  # Replace 'your_document_id' with the correct path
-    stored_credentials = ref.get()
-    
-    if stored_credentials:
-        credentials = Credentials(
-            stored_credentials['token'],
-            refresh_token=stored_credentials.get('refresh_token'),
-            token_uri=client_secrets['web']['token_uri'],
-            client_id=client_secrets['web']['client_id'],
-            client_secret=client_secrets['web']['client_secret']
-        )
-        if not credentials.valid:
-            # credentials.refresh(Request())
-            return "expired", 400
-    else:
-        raise RuntimeError("Credentials not found in Firebase Realtime Database")
+    return jsonify({"message": "Authorization successful, credentials saved"}), 200
+
+# Route to save a contact to Google Contacts
+@app.route('/save', methods=['POST'])
+def save():
+    data = request.json
+    number = data.get('number', '')
+    formatted_number = ''.join(filter(str.isdigit, number))
+    id = "Z" + formatted_number[:4]
+
+    try:
+        credentials = load_credentials()
+        if not credentials or not credentials.valid:
+            raise RuntimeError("Credentials not valid")
+
+        service = build('people', 'v1', credentials=credentials)
+
+        contact = {
+            'names': [{'givenName': id}],
+            'phoneNumbers': [{'value': formatted_number, 'type': 'mobile'}]
+        }
+
+        saved_contact = service.people().createContact(body=contact).execute()
+        print(saved_contact)
+        return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
+
+    except Exception as e:
+        print(f"Error saving contact: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Main index route
 @app.route('/')

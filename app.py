@@ -70,7 +70,8 @@ def register():
     user_identifier = get_user(query)
     # if number save it 
     contact_status = save(user_identifier)
-    print(f"this is the contact status {contact_status}")
+    contact_status_str = str(contact_status)
+    print(f"this is the contact status {contact_status_str}")
     id = "Z" + user_identifier[:4]
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
@@ -111,7 +112,7 @@ def register():
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
     response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
-    return jsonify({"replies": [{"message": f"{response_message + info + contact_status}" }]}), 200
+    return jsonify({"replies": [{"message": response_message + info + {str(contact_status)}  }]}), 200
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])
@@ -186,7 +187,7 @@ def save(number):
         credentials = load_credentials()
 
         if not credentials or not credentials.valid:
-            return jsonify({"message": "Credentials not found"}), 400 
+            raise RuntimeError("credentials not valid") 
         
         # Create credentials object from the token
         service = build('people', 'v1', credentials=credentials)
@@ -197,11 +198,9 @@ def save(number):
         }
 
         saved_contact = service.people().createContact(body=contact).execute()
-        print(f"saved successfully")
         return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
 
     except Exception as e:
-        print(f"Error saving contact: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # OAuth authorization route

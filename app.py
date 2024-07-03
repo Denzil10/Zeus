@@ -226,22 +226,22 @@ def oauth2callback():
     flow.redirect_uri = url_for('oauth2callback', _external=True)
 
     authorization_response = request.url
-    flow.fetch_token(authorization_response=authorization_response)
-
+    # token = flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    print(credentials)
     save_credentials(credentials)
     return f"credentials + {credentials}", 200
 
-
 def save_credentials(credentials):
-    db.reference('/oauth_credentials').set(credentials.to_json())
+    db.reference('/oauth_credentials').set(credentials.to_authorized_user_info())
 
 def load_credentials():
     credentials_ref = db.reference('/oauth_credentials')
     credentials_json = credentials_ref.get()
-    return Credentials.from_json(credentials_json) 
-
+    
+    if credentials_json:
+        return Credentials.from_authorized_user_info(credentials_json)
+    else:
+        return None
 
 # Main index route
 @app.route('/')

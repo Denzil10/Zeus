@@ -234,13 +234,22 @@ def save_credentials(credentials):
     db.reference('/oauth_credentials').set(credentials.to_json())
 
 def load_credentials():
-    credentials_ref = db.reference('/oauth_credentials')
-    credentials_json = credentials_ref.get()
+    ref = db.reference('/oauth_credentials')  # Replace 'your_document_id' with the correct path
+    stored_credentials = ref.get()
     
-    if credentials_json:
-        return Credentials.from_authorized_user_info(credentials_json)
+    if stored_credentials:
+        credentials = Credentials(
+            stored_credentials['token'],
+            refresh_token=stored_credentials.get('refresh_token'),
+            token_uri=client_secrets['web']['token_uri'],
+            client_id=client_secrets['web']['client_id'],
+            client_secret=client_secrets['web']['client_secret']
+        )
+        if not credentials.valid:
+            # credentials.refresh(Request())
+            return "expired", 400
     else:
-        return None
+        raise RuntimeError("Credentials not found in Firebase Realtime Database")
 
 # Main index route
 @app.route('/')

@@ -178,16 +178,12 @@ def save(number):
     credentials = load_credentials()
     id = "Z" + number[:4]
     try:
-        # Get the authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({'error': 'Authorization header is missing'}), 401
+        credentials = load_credentials()
 
-        token = auth_header.split(" ")[1]
-        print(token)
-    
+        if not credentials or not credentials.valid:
+            return jsonify({"message": "Credentials not found"}), 400 
+        
         # Create credentials object from the token
-        credentials = Credentials(token)
         service = build('people', 'v1', credentials=credentials)
 
         contact = {

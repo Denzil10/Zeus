@@ -35,11 +35,11 @@ else:
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
 # Function to extract user identifier
-def get_user_identifier(query):
+def get_user(query):
     if query.get('isGroup'):
-        return query.get('sender')
-    else:
         return query.get('groupParticipant', '').replace(' ', '')
+    else:
+        return query.get('sender').replace(' ', '')
 
 # Function to generate referral code
 def generate_referral_code():
@@ -62,7 +62,7 @@ def register():
     referrer_code = referrer_code_match.group(1) if referrer_code_match else ""
     referral_code = generate_referral_code()
 
-    user_identifier = get_user_identifier(query)
+    user_identifier = get_user(query)
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
@@ -111,7 +111,7 @@ def info():
     data = request.json
     query = data.get('query')
 
-    user_identifier = get_user_identifier(query)
+    user_identifier = get_user(query)
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
@@ -138,7 +138,7 @@ def checkin():
     data = request.json
     query = data.get('query')
 
-    user_identifier = get_user_identifier(query)
+    user_identifier = get_user(query)
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
@@ -203,22 +203,24 @@ def oauth2callback():
         'scopes': credentials.scopes
     }
 
-    return redirect(url_for('save_contact'))
+    return redirect(url_for('save'))
 
 # Route to save a contact to Google Contacts
-@app.route('/save_contact', methods=['POST'])
+@app.route('/save', methods=['POST'])
 def save_contact():
     data = request.json
     query = data.get('query')
 
-    user_identifier = get_user_identifier(query)
-    user_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
-    user_snapshot = user_ref.get()
+    user_identifier = get_user(query)
+    number = ''.join(filter(str.isdigit, user_identifier))
+    # user_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
+    # user_snapshot = user_ref.get()
 
-    if not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register first"}]}), 400
+    # if not user_snapshot:
+    #     return jsonify({"replies": [{"message": "Please register first"}]}), 400
 
-    user_data = list(user_snapshot.values())[0]
+    # user_data = list(user_snapshot.values())[0]
+    
     id = "Z" + user_identifier[:4]
 
     try:
@@ -231,7 +233,7 @@ def save_contact():
 
         contact = {
             'names': [{'givenName': id}],
-            'phoneNumbers': [{'value': user_identifier, 'type': 'mobile'}]
+            'phoneNumbers': [{'value': number, 'type': 'mobile'}]
         }
 
         saved_contact = service.people().createContact(body=contact).execute()

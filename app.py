@@ -59,7 +59,7 @@ def generate_referral_code():
 
 # Route to register a user
 @app.route('/register', methods=['POST'])
-def register(data):
+def register(data=None):
     if not data:
         data = request.json
     query = data.get('query')
@@ -136,7 +136,7 @@ def register(data):
 
 # Route to retrieve user info
 @app.route('/info', methods=['POST'])
-def info(data):
+def info(data= None):
     if not data:
         data = request.json
     query = data.get('query')
@@ -151,7 +151,7 @@ def info(data):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding takes upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
 
     print(f" {user_identifier}")
     
@@ -171,7 +171,7 @@ def info(data):
 
 # Route to perform daily check-in
 @app.route('/checkin', methods=['POST'])
-def checkin(data):
+def checkin(data=None):
     if not data:
         data = request.json
     query = data.get('query')

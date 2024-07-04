@@ -65,12 +65,12 @@ def register(data):
     query = data.get('query')
     
     if query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ Registration should be done on DM"}]}), 400
+        return jsonify({"replies": [{"message": "❌ Registration should be done on DM"}]}), 200
     
     message = query.get('message', '')
     username_match = re.search(r"register:\s*(\w+)", message)
     if not username_match:
-        return jsonify({"replies": [{"message": "❌ Invalid registration format"}]}), 400
+        return jsonify({"replies": [{"message": "❌ Invalid registration format"}]}), 200
     username = username_match.group(1)
 
     referrer_code_match = re.search(r"referral:\s*(\w+)", message)
@@ -91,7 +91,7 @@ def register(data):
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
     if user_snapshot:
-        return jsonify({"replies": [{"message": "❌ User already exists"}]}), 400
+        return jsonify({"replies": [{"message": "❌ User already exists"}]}), 200
     
     # if new number save it 
     contact_status = save(user_identifier)
@@ -107,7 +107,7 @@ def register(data):
         ref = db.reference('users').order_by_child('referralCode').equal_to(referrer_code)
         referrer = ref.get()
         if not referrer:
-            return jsonify({"replies": [{"message": "❌ Invalid referral code"}]}), 400
+            return jsonify({"replies": [{"message": "❌ Invalid referral code"}]}), 200
         level = 1
 
     user_data = {
@@ -146,12 +146,12 @@ def info(data):
     user_snapshot = users_ref.get()
 
     if not query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 400
+        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 200
     
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 400
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 200
 
     print(f" {user_identifier}")
     
@@ -181,12 +181,12 @@ def checkin(data):
     user_snapshot = users_ref.get()
     
     if not query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 400
+        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 200
 
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 400
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 200
     
 
     user_data = list(user_snapshot.values())[0]

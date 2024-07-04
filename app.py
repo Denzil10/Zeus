@@ -42,10 +42,15 @@ SCOPES = ['https://www.googleapis.com/auth/contacts']
 # Function to extract user identifier
 def get_user(query):
     if query.get('isGroup'):
-        return query.get('groupParticipant', '').replace(' ', '')
+        id = query.get('groupParticipant', '').replace(' ', '')
+        return id
     else:
-        sender = query.get('sender', '')
-        return ''.join(c for c in sender if c.isdigit())
+        id = query.get('sender', '').replace(' ','')
+         # handle contacts
+        contact = not any(c.isdigit() for c in id)
+        if not contact:
+            id = ''.join(c for c in id if c.isdigit())
+        return id
 
 # Function to generate referral code
 def generate_referral_code():
@@ -58,7 +63,10 @@ def register(data):
     if not data:
         data = request.json
     query = data.get('query')
-
+    
+    if query.get('isGroup'):
+        return jsonify({"replies": [{"message": "❌ Registration should be done on DM"}]}), 400
+    
     message = query.get('message', '')
     username_match = re.search(r"register:\s*(\w+)", message)
     if not username_match:
@@ -70,16 +78,25 @@ def register(data):
     referral_code = generate_referral_code()
 
     user_identifier = get_user(query)
-    # if number save it 
-    contact_status = save(user_identifier)
-    contact_status_str = str(contact_status)
-    print(f"this is the contact status {contact_status_str}")
     id = "Z" + user_identifier[:4]
+    
+    # handle contacts
+    contact = not any(c.isdigit() for c in user_identifier)
+    if contact:
+        id = user_identifier
+    
+    # if contact: 
+    #     return jsonify({"replies": [{"message": "contact is already saved"}]}), 400    
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
     if user_snapshot:
         return jsonify({"replies": [{"message": "❌ User already exists"}]}), 400
+    
+    # if new number save it 
+    contact_status = save(user_identifier)
+    # contact_status_str = str(contact_status)
+    # print(f"{contact_status_str}")
 
     now = datetime.now(timezone.utc)
     yesterday = now - timedelta(days=1)
@@ -108,13 +125,13 @@ def register(data):
     db.reference('users').push(user_data)
 
     info = (
-        "User Card😎\n"
+        "*User Card*😎\n"
         f"Identifier: {user_data['identifier']}\n"
         f"Level: {user_data['level']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
-    response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n"
+    response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n\n"
     return jsonify({"replies": [{"message": response_message + info}]}), 200
 
 # Route to retrieve user info
@@ -128,9 +145,16 @@ def info(data):
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
-    if not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register first"}]}), 400
+    if not query.get('isGroup'):
+        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 400
+    
+    # either not saved or contact not registered 
+    notSaved = user_identifier.startswith('~') or not user_snapshot
+    if notSaved:
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 400
 
+    print(f" {user_identifier}")
+    
     user_data = list(user_snapshot.values())[0]
 
     info_message = (
@@ -155,9 +179,15 @@ def checkin(data):
     user_identifier = get_user(query)
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
+    
+    if not query.get('isGroup'):
+        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 400
 
-    if not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register first"}]}), 400
+    # either not saved or contact not registered 
+    notSaved = user_identifier.startswith('~') or not user_snapshot
+    if notSaved:
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 400
+    
 
     user_data = list(user_snapshot.values())[0]
     now = datetime.now(timezone.utc)
@@ -177,7 +207,7 @@ def checkin(data):
         user_data['streak'] += 1
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
-        msg = f"🎉 Reached level {user_data['level']}"
+        msg = f"{user_data['username']} reached level {user_data['level']}🎉"
 
     db.reference('users').child(list(user_snapshot.keys())[0]).update(user_data)
 

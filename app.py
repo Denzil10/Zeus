@@ -267,6 +267,7 @@ def oauth2callback():
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
+    print(f"referesh {credentials.refresh_token}")
     save_credentials(credentials)
 
     return jsonify({"message": "Authorization successful, credentials saved"}), 200

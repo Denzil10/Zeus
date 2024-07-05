@@ -81,9 +81,10 @@ def register(data=None):
 
     user_identifier = get_user(query)
     
-    # check if unknowns not saved
+    
+    # check if unknowns 
     id = user_identifier
-    notSaved = user_identifier.startswith('~')
+    notSaved = user_identifier.startswith('~') or user_identifier.startswith('+')
     if notSaved:
         number = ''.join([c for c in user_identifier if c.isdigit()])
         id = "Z" + number[2:7]
@@ -146,8 +147,8 @@ def info(data= None):
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
-    if not query.get('isGroup'):
-        return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
+    # if not query.get('isGroup'):
+    #     return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
     
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot

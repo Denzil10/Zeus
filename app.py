@@ -130,7 +130,7 @@ def register(data=None):
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
     
-    response_message = f"🎉 Welcome {user_data['username']}!\n {upgrade_phrase} to level {user_data['level']}🔥\n\n"
+    response_message = f"🎉 Welcome {user_data['username']}!\n {upgrade_phrase} level {user_data['level']}🔥\n\n"
     return jsonify({"replies": [{"message": response_message + info}]}), 200
 
 # Route to retrieve user info

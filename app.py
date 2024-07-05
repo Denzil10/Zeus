@@ -79,12 +79,13 @@ def register(data=None):
     referral_code = generate_referral_code()
 
     user_identifier = get_user(query)
-    id = "Z" + user_identifier[2:7]
     
     # handle contacts
-    contact = not any(c.isdigit() for c in user_identifier)
+    contact = not all(c.isdigit() for c in user_identifier)
     if contact:
         id = user_identifier
+    else:
+        id = "Z" + user_identifier[2:7]
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()

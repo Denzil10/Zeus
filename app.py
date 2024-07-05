@@ -44,14 +44,15 @@ SCOPES = ['https://www.googleapis.com/auth/contacts']
 def get_user(query):
     if query.get('isGroup'):
         id = query.get('groupParticipant', '').replace(' ', '')
-        return id
     else:
         id = query.get('sender', '').replace(' ','')
-         # handle contacts
-        contact = not any(c.isdigit() for c in id)
-        if not contact:
-            id = ''.join(c for c in id if c.isdigit())
-        return id
+    
+    if id.startswith('~'):
+        unknown = True 
+    # have to remove the + sign but ~ is okay
+        
+    # code for handling normal contacts
+    return id
 
 # Function to generate referral code
 def generate_referral_code():
@@ -80,12 +81,12 @@ def register(data=None):
 
     user_identifier = get_user(query)
     
-    # handle contacts
-    contact = not all(c.isdigit() for c in user_identifier)
-    if contact:
-        id = user_identifier
-    else:
-        id = "Z" + user_identifier[2:7]
+    # check if unknowns not saved
+    id = user_identifier
+    notSaved = user_identifier.startswith('~')
+    if notSaved:
+        number = ''.join([c for c in user_identifier if c.isdigit()])
+        id = "Z" + number[2:7]
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
@@ -93,9 +94,8 @@ def register(data=None):
         return jsonify({"replies": [{"message": "User already exists"}]}), 200
     
     # if new number save it 
+    # we are sending complete number without spaces
     contact_status = save(user_identifier)
-    # contact_status_str = str(contact_status)
-    # print(f"{contact_status_str}")
 
     now = datetime.now(timezone.utc)
     yesterday = now - timedelta(days=1)
@@ -127,6 +127,7 @@ def register(data=None):
 
     info = (
         "*User Card*😎\n"
+        f"Identifier {user_data['identifier']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
@@ -153,8 +154,6 @@ def info(data= None):
     if notSaved:
         return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
 
-    print(f" {user_identifier}")
-    
     user_data = list(user_snapshot.values())[0]
 
     info_message = (
@@ -188,7 +187,6 @@ def checkin(data=None):
     if notSaved:
         return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
     
-
     user_data = list(user_snapshot.values())[0]
     now = datetime.now(timezone.utc)
     today_date = now.strftime('%Y-%m-%d')
@@ -278,6 +276,7 @@ def oauth2callback():
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
 def save(number):
+    number = ''.join([char for char in number if char.isdigit()])
     id = "Z" + number[2:7]
 
     try:

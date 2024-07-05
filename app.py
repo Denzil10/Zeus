@@ -87,7 +87,7 @@ def register(data=None):
     notSaved = user_identifier.startswith('~') or user_identifier.startswith('+')
     if notSaved:
         number = ''.join([c for c in user_identifier if c.isdigit()])
-        id = "Z" + number[2:7]
+        id = "Z" + number[2:7] #considering indian numbers
     
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
@@ -128,7 +128,7 @@ def register(data=None):
 
     info = (
         "*User Card*😎\n"
-        f"Identifier {user_data['identifier']}\n"
+        # f"Identifier {user_data['identifier']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )

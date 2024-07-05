@@ -79,7 +79,7 @@ def register(data=None):
     referral_code = generate_referral_code()
 
     user_identifier = get_user(query)
-    id = "Z" + user_identifier[:4]
+    id = "Z" + user_identifier[2:7]
     
     # handle contacts
     contact = not any(c.isdigit() for c in user_identifier)
@@ -101,12 +101,14 @@ def register(data=None):
     yes_date = yesterday.strftime('%Y-%m-%d')
 
     level = 0
+    upgrade_phrase = "Starting from"
     if referrer_code:
         ref = db.reference('users').order_by_child('referralCode').equal_to(referrer_code)
         referrer = ref.get()
         if not referrer:
             return jsonify({"replies": [{"message": "Invalid referral code"}]}), 200
         level = 1
+        upgrade_phrase = "Upgraded to"
 
     user_data = {
         'identifier': id,
@@ -127,7 +129,8 @@ def register(data=None):
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
-    response_message = f"🎉 Welcome {user_data['username']}!\n Upgraded to level {user_data['level']}🔥\n\n"
+    
+    response_message = f"🎉 Welcome {user_data['username']}!\n {upgrade_phrase} to level {user_data['level']}🔥\n\n"
     return jsonify({"replies": [{"message": response_message + info}]}), 200
 
 # Route to retrieve user info
@@ -147,7 +150,7 @@ def info(data= None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding takes upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
 
     print(f" {user_identifier}")
     
@@ -182,7 +185,7 @@ def checkin(data=None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for 10 mintues as onboarding takes upto 2-5 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
     
 
     user_data = list(user_snapshot.values())[0]
@@ -274,7 +277,7 @@ def oauth2callback():
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
 def save(number):
-    id = "Z" + number[:4]
+    id = "Z" + number[2:7]
 
     try:
         credentials = load_credentials()

@@ -275,8 +275,7 @@ def oauth2callback():
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
-def save():
-    number = request.json.get('number')
+def save(number):
     id = "Z" + number[:4]
 
     try:

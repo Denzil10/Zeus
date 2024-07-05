@@ -10,6 +10,7 @@ import string
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 
 # Initialize Firebase Admin SDK
 firebase_cred_str = os.getenv('firebase')
@@ -65,12 +66,12 @@ def register(data=None):
     query = data.get('query')
     
     if query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ Registration should be done on DM"}]}), 200
+        return jsonify({"replies": [{"message": "Register message should be directly send to Zeus bot"}]}), 200
     
     message = query.get('message', '')
     username_match = re.search(r"register:\s*(\w+)", message)
     if not username_match:
-        return jsonify({"replies": [{"message": "❌ Invalid registration format"}]}), 200
+        return jsonify({"replies": [{"message": "Invalid registration format. Please refer manual"}]}), 200
     username = username_match.group(1)
 
     referrer_code_match = re.search(r"referral:\s*(\w+)", message)
@@ -85,13 +86,10 @@ def register(data=None):
     if contact:
         id = user_identifier
     
-    # if contact: 
-    #     return jsonify({"replies": [{"message": "contact is already saved"}]}), 400    
-    
     users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
     user_snapshot = users_ref.get()
     if user_snapshot:
-        return jsonify({"replies": [{"message": "❌ User already exists"}]}), 200
+        return jsonify({"replies": [{"message": "User already exists"}]}), 200
     
     # if new number save it 
     contact_status = save(user_identifier)
@@ -107,7 +105,7 @@ def register(data=None):
         ref = db.reference('users').order_by_child('referralCode').equal_to(referrer_code)
         referrer = ref.get()
         if not referrer:
-            return jsonify({"replies": [{"message": "❌ Invalid referral code"}]}), 200
+            return jsonify({"replies": [{"message": "Invalid referral code"}]}), 200
         level = 1
 
     user_data = {
@@ -126,8 +124,6 @@ def register(data=None):
 
     info = (
         "*User Card*😎\n"
-        f"Identifier: {user_data['identifier']}\n"
-        f"Level: {user_data['level']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
         f"Referral Code: {user_data['referralCode']} (note it down)\n"
     )
@@ -146,7 +142,7 @@ def info(data= None):
     user_snapshot = users_ref.get()
 
     if not query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 200
+        return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
     
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
@@ -181,7 +177,7 @@ def checkin(data=None):
     user_snapshot = users_ref.get()
     
     if not query.get('isGroup'):
-        return jsonify({"replies": [{"message": "❌ commands like info and checkin should be done on group"}]}), 200
+        return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
 
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
@@ -196,7 +192,7 @@ def checkin(data=None):
     yes_date = yesterday.strftime('%Y-%m-%d')
 
     if user_data['lastCheckInDate'] == today_date:
-        return jsonify({"replies": [{"message": "✅ Check-in has been already done"}]}), 200
+        return jsonify({"replies": [{"message": "Next check-in is tomorrow"}]}), 200
     elif user_data['lastCheckInDate'] != yes_date:
         user_data['level'] = 1
         user_data['streak'] = 1
@@ -221,15 +217,12 @@ def save_credentials(credentials):
         'refresh_token': credentials.refresh_token,
         'token_uri': credentials.token_uri,
         'client_id': credentials.client_id,
-        'client_secret': credentials.client_secret,
-        'scopes': credentials.scopes
+        'client_secret': credentials.client_secret
     })
 
-# Load OAuth credentials from Firebase
 def load_credentials():
     ref = db.reference('oauth_credentials')
     stored_credentials = ref.get()
-
     if stored_credentials:
         credentials = Credentials(
             stored_credentials['token'],
@@ -238,8 +231,11 @@ def load_credentials():
             client_id=stored_credentials['client_id'],
             client_secret=stored_credentials['client_secret']
         )
-        # if credentials.expired:
-            # credentials.refresh(Request())
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+            save_credentials(credentials)
+        else:
+            raise RuntimeError("Valid credentials or not refresh token found")
         return credentials
     else:
         raise RuntimeError("Credentials not found in Firebase Realtime Database")
@@ -277,7 +273,8 @@ def oauth2callback():
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
-def save(number):
+def save():
+    number = request.json.get('number')
     id = "Z" + number[:4]
 
     try:
@@ -293,13 +290,11 @@ def save(number):
         }
 
         saved_contact = service.people().createContact(body=contact).execute()
-        print(saved_contact)
         return jsonify({'message': 'Contact saved successfully', 'contact': saved_contact}), 200
 
     except Exception as e:
         print(f"Error saving contact: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+        return jsonify({"status": "error", "message": str(e)}), 400
 @app.route('/any', methods=['POST'])
 def route_message():
     data = request.json

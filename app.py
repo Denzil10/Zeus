@@ -267,10 +267,10 @@ def oauth2callback():
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    print(f"referesh {credentials.refresh_token}")
+    # print(f"referesh {credentials.refresh_token}")
     save_credentials(credentials)
 
-    return jsonify({"message": "Authorization successful, credentials saved"}), 200
+    return jsonify({"message": f"Authorization successful, credentials saved with refresh {credentials.refresh_token}"}), 200
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])

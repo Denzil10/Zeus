@@ -234,8 +234,6 @@ def load_credentials():
         if credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
             save_credentials(credentials)
-        else:
-            raise RuntimeError("Valid credentials or not refresh token found")
         return credentials
     else:
         raise RuntimeError("Credentials not found in Firebase Realtime Database")

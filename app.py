@@ -214,7 +214,7 @@ def save_credentials(credentials):
     ref = db.reference('oauth_credentials')
     ref.set({
         'token': credentials.token,
-        'refresh_token': credentials.refresh_token,
+        'refresh_token': credentials.get('refresh_token', "None"),
         'token_uri': credentials.token_uri,
         'client_id': credentials.client_id,
         'client_secret': credentials.client_secret

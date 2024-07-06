@@ -312,7 +312,7 @@ def route_message():
     elif first_word == 'checkin':
         return checkin(data)
     else:
-        return jsonify({"replies": [{"message": f"Invalid message \n Please refer manual \n Have a look @⁨Z9196⁩" }]}), 200
+        return jsonify({"replies": [{"message": f"Invalid message \nPlease refer manual\n Have a look @⁨Z9196⁩" }]}), 200
 
 
 # Main index route

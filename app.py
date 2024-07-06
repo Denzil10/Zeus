@@ -312,7 +312,7 @@ def route_message():
     elif first_word == 'checkin':
         return checkin(data)
     else:
-        return jsonify({'status': 'error', 'message': f'Unknown command: {first_word}'}), 400
+        return jsonify({'status': 'error', 'message': f'Invalid message \n Please refer manual \n Have a look @⁨Z9196⁩'}), 400
 
 
 # Main index route

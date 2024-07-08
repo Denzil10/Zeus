@@ -158,7 +158,7 @@ def info(data= None):
     user_data = list(user_snapshot.values())[0]
 
     info_message = (
-        "⚡*Info*⚡\n"
+        "⚡ *Info* ⚡\n"
         f"Username: {user_data['username']}\n"
         f"Level: {user_data['level']}\n"
         f"Streak: {user_data['streak']}\n"
@@ -199,7 +199,8 @@ def checkin(data=None):
     elif user_data['lastCheckInDate'] != yes_date:
         user_data['level'] = 1
         user_data['streak'] = 1
-        msg = f"🐣Oops! streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
+        user_data['lastCheckInDate'] = today_date
+        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
     else:
         user_data['level'] += 1
         user_data['lastCheckInDate'] = today_date

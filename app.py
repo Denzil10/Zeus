@@ -130,10 +130,10 @@ def register(data=None):
         "*User Card*😎\n"
         # f"Identifier {user_data['identifier']}\n"
         f"Best Streak: {user_data['bestStreak']}\n"
-        f"Referral Code: {user_data['referralCode']} (note it down)\n"
+        f"Referral Code: {user_data['referralCode']}\n"
     )
     
-    response_message = f"🎉 Welcome {user_data['username']}!\n {upgrade_phrase} level {user_data['level']}🔥\n\n"
+    response_message = f"⚡Welcome {user_data['username']}!\n {upgrade_phrase} level {user_data['level']}⚡\n\n"
     return jsonify({"replies": [{"message": response_message + info}]}), 200
 
 # Route to retrieve user info
@@ -153,12 +153,12 @@ def info(data= None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes. Still having issues? message \"help\" to the bot"}]}), 200
 
     user_data = list(user_snapshot.values())[0]
 
     info_message = (
-        "Info😎\n"
+        "⚡*Info*⚡\n"
         f"Username: {user_data['username']}\n"
         f"Level: {user_data['level']}\n"
         f"Streak: {user_data['streak']}\n"
@@ -195,18 +195,18 @@ def checkin(data=None):
     yes_date = yesterday.strftime('%Y-%m-%d')
 
     if user_data['lastCheckInDate'] == today_date:
-        return jsonify({"replies": [{"message": "Next check-in is tomorrow"}]}), 200
+        return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
     elif user_data['lastCheckInDate'] != yes_date:
         user_data['level'] = 1
         user_data['streak'] = 1
-        msg = f"🔴 You broke your streak. Starting from level 1"
+        msg = f"🐣Oops! streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
     else:
         user_data['level'] += 1
         user_data['lastCheckInDate'] = today_date
         user_data['streak'] += 1
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
-        msg = f"{user_data['username']} reached level {user_data['level']}🎉"
+        msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡"
 
     db.reference('users').child(list(user_snapshot.keys())[0]).update(user_data)
 

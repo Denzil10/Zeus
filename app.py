@@ -81,7 +81,6 @@ def register(data=None):
 
     user_identifier = get_user(query)
     
-    
     # check if unknowns 
     id = user_identifier
     notSaved = user_identifier.startswith('~') or user_identifier.startswith('+')
@@ -107,6 +106,7 @@ def register(data=None):
     if referrer_code:
         ref = db.reference('users').order_by_child('referralCode').equal_to(referrer_code)
         referrer = ref.get()
+        referrer['referral_count'] +=1
         if not referrer:
             return jsonify({"replies": [{"message": "Invalid referral code"}]}), 200
         level = 1
@@ -186,7 +186,7 @@ def checkin(data=None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 3 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
     
     user_data = list(user_snapshot.values())[0]
     now = datetime.now(timezone.utc)

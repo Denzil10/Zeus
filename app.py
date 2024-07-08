@@ -106,7 +106,8 @@ def register(data=None):
     if referrer_code:
         ref = db.reference('users').order_by_child('referralCode').equal_to(referrer_code)
         referrer = ref.get()
-        referrer['referral_count'] +=1
+        referrer_data = list(referrer.values())[0]
+        referrer_data['referral_count'] +=1
         if not referrer:
             return jsonify({"replies": [{"message": "Invalid referral code"}]}), 200
         level = 1

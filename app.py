@@ -147,8 +147,8 @@ def info(data= None):
     users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
     user_snapshot = users_ref.get()
 
-    # if not query.get('isGroup'):
-    #     return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
+    if not query.get('isGroup'):
+        return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
     
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
@@ -312,7 +312,7 @@ def route_message():
     elif first_word == 'checkin':
         return checkin(data)
     else:
-        return jsonify({"replies": [{"message": f"Invalid message \nPlease refer manual\n Have a look @Z9196" }]}), 200
+        return jsonify({"replies": [{"message": f"Invalid command, please refer manual\nYou can discuss on general group " }]}), 200
 
 
 # Main index route

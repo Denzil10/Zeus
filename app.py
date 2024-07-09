@@ -109,7 +109,7 @@ def register(data=None):
         if not referrer:
             return jsonify({"replies": [{"message": "Invalid referral code"}]}), 200
         referrer_data = list(referrer.values())[0]
-        referrer_data['referral_count'] +=1
+        referrer_data['referralCount'] +=1
         level = 1
         upgrade_phrase = "Upgraded to"
 

@@ -81,7 +81,7 @@ def register(data=None):
 
     user_identifier = get_user(query)
     
-    # check if unknowns 
+    # check if saved
     id = user_identifier
     notSaved = user_identifier.startswith('~') or user_identifier.startswith('+')
     if notSaved:
@@ -198,10 +198,10 @@ def checkin(data=None):
     if user_data['lastCheckInDate'] == today_date:
         return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
     elif user_data['lastCheckInDate'] != yes_date:
+        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
         user_data['level'] = 1
         user_data['streak'] = 1
         user_data['lastCheckInDate'] = today_date
-        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
     else:
         user_data['level'] += 1
         user_data['lastCheckInDate'] = today_date

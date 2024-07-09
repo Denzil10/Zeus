@@ -88,19 +88,6 @@ def register(data=None):
         number = ''.join([c for c in user_identifier if c.isdigit()])
         id = "Z" + number[2:7] #considering indian numbers
     
-    users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
-    user_snapshot = users_ref.get()
-    if user_snapshot:
-        return jsonify({"replies": [{"message": "User already exists"}]}), 200
-    
-    # if new number save it 
-    # we are sending complete number without spaces
-    contact_status = save(user_identifier)
-
-    now = datetime.now(timezone.utc)
-    yesterday = now - timedelta(days=1)
-    yes_date = yesterday.strftime('%Y-%m-%d')
-
     level = 0
     upgrade_phrase = "Starting from"
     if referrer_code:
@@ -113,6 +100,17 @@ def register(data=None):
         level = 1
         upgrade_phrase = "Upgraded to"
 
+    now = datetime.now(timezone.utc)
+    yesterday = now - timedelta(days=1)
+    yes_date = yesterday.strftime('%Y-%m-%d')
+
+    users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
+    user_snapshot = users_ref.get()
+    if user_snapshot:
+        return jsonify({"replies": [{"message": "User already exists"}]}), 200
+    
+    # save new number
+    contact_status = save(user_identifier)
     user_data = {
         'identifier': id,
         'username': username,

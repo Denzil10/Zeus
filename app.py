@@ -318,8 +318,7 @@ def leaderboard():
     leaderboard_message = "🏆 *Leaderboard* 🏆\n"
     for i, user in enumerate(sorted_users[:10], 1):  # Limit to top 10 users
         leaderboard_message += (
-            f"{i}. {user['username']} - Level: {user['level']}, Streak: {user['streak']}, "
-            f"Best Streak: {user['bestStreak']}\n"
+            f"{i}. {user['username']} - Streak: {user['streak']}, "
         )
 
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200

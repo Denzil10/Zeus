@@ -315,10 +315,10 @@ def leaderboard():
     sorted_users = sorted(users_data, key=lambda x: x['streak'], reverse=True)
 
     # Format the leaderboard message
-    leaderboard_message = "🏆 *Leaderboard* 🏆\n"
+    leaderboard_message = "🏆 *Streak Leaderboard* 🏆\n"
     for i, user in enumerate(sorted_users[:10], 1):  # Limit to top 10 users
         leaderboard_message += (
-            f"{i}. {user['username']} - Streak: {user['streak']}\n"
+            f"{i}. {user['username']} - {user['streak']}\n"
         )
 
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200

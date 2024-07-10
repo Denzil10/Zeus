@@ -152,7 +152,7 @@ def info(data= None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~') or not user_snapshot
     if notSaved:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes. Still having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "1. Please register on my DM first\n2. If already done try after a minute\n3. Still having issues? message me directly"}]}), 200
 
     user_data = list(user_snapshot.values())[0]
 
@@ -298,6 +298,33 @@ def save(number):
     except Exception as e:
         print(f"Error saving contact: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 400
+    
+@app.route('/leaderboard', methods=['GET'])
+def leaderboard():
+    # Fetch all users from the database
+    users_ref = db.reference('users')
+    users_snapshot = users_ref.get()
+
+    if not users_snapshot:
+        return jsonify({"replies": [{"message": "No users found."}]}), 200
+
+    # Create a list of user data dictionaries
+    users_data = list(users_snapshot.values())
+
+    # Sort the users by their streak in descending order
+    sorted_users = sorted(users_data, key=lambda x: x['streak'], reverse=True)
+
+    # Format the leaderboard message
+    leaderboard_message = "🏆 *Leaderboard* 🏆\n"
+    for i, user in enumerate(sorted_users[:10], 1):  # Limit to top 10 users
+        leaderboard_message += (
+            f"{i}. {user['username']} - Level: {user['level']}, Streak: {user['streak']}, "
+            f"Best Streak: {user['bestStreak']}\n"
+        )
+
+    return jsonify({"replies": [{"message": leaderboard_message}]}), 200
+
+
 @app.route('/any', methods=['POST'])
 def route_message():
     data = request.json

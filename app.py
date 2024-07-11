@@ -112,7 +112,7 @@ def register(data=None):
         'username': username,
         'referrerCode': referrer_code,
         'level': level,
-        'lastCheckInDate': None,
+        'lastCheckInDate': "None",
         'referralCount': 0,
         'referralCode': referral_code,
         'streak': 0,
@@ -184,10 +184,12 @@ def checkin(data=None):
         return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
     
     user_data = list(user_snapshot.values())[0]
-    now = datetime.now(timezone.utc)
-    today_date = now.strftime('%Y-%m-%d')
-    yesterday = now - timedelta(days=1)
-    yes_date = yesterday.strftime('%Y-%m-%d')
+    now_utc = datetime.now(timezone('UTC'))
+    ist_timezone = timezone('Asia/Kolkata')
+    now_ist = now_utc.astimezone(ist_timezone)
+    today_date = now_ist.strftime('%Y-%m-%d')
+    yesterday_ist = now_ist - timedelta(days=1)
+    yes_date = yesterday_ist.strftime('%Y-%m-%d')
 
     last =  user_data['lastCheckInDate']
     if last == today_date:

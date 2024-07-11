@@ -74,7 +74,6 @@ def register(data=None):
     if not username_match:
         return jsonify({"replies": [{"message": "Invalid registration format. Please refer manual"}]}), 200
     username = username_match.group(1)
-
     user_identifier = get_user(query)
     
     # check if saved

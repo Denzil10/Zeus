@@ -195,8 +195,8 @@ def checkin(data=None):
         # beginner or yes date
     elif last == yes_date or last =="None" or last==None or user_data['best_streak']==0:
         user_data['level'] += 1
-        user_data['lastCheckInDate'] = today_date
         user_data['streak'] += 1
+        user_data['lastCheckInDate'] = today_date
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
         msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡"

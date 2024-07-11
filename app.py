@@ -75,10 +75,6 @@ def register(data=None):
         return jsonify({"replies": [{"message": "Invalid registration format. Please refer manual"}]}), 200
     username = username_match.group(1)
 
-    referrer_code_match = re.search(r"referral:\s*(\w+)", message)
-    referrer_code = referrer_code_match.group(1) if referrer_code_match else ""
-    referral_code = generate_referral_code()
-
     user_identifier = get_user(query)
     
     # check if saved
@@ -87,6 +83,15 @@ def register(data=None):
     if notSaved:
         number = ''.join([c for c in user_identifier if c.isdigit()])
         id = "Z" + number[2:7] #considering indian numbers
+
+    users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
+    user_snapshot = users_ref.get()
+    if user_snapshot:
+        return jsonify({"replies": [{"message": "User already exists"}]}), 200
+    
+    referrer_code_match = re.search(r"referral:\s*(\w+)", message)
+    referrer_code = referrer_code_match.group(1) if referrer_code_match else ""
+    referral_code = generate_referral_code()
     
     level = 0
     upgrade_phrase = "Starting from"
@@ -99,24 +104,16 @@ def register(data=None):
         referrer_data['referralCount'] +=1
         level = 1
         upgrade_phrase = "Upgraded to"
-
-    now = datetime.now(timezone.utc)
-    yesterday = now - timedelta(days=1)
-    yes_date = yesterday.strftime('%Y-%m-%d')
-
-    users_ref = db.reference('users').order_by_child('identifier').equal_to(id)
-    user_snapshot = users_ref.get()
-    if user_snapshot:
-        return jsonify({"replies": [{"message": "User already exists"}]}), 200
     
-    # save new number
-    contact_status = save(user_identifier)
+    # save unknown numbers
+    if notSaved:
+        contact_status = save(user_identifier)
     user_data = {
         'identifier': id,
         'username': username,
         'referrerCode': referrer_code,
         'level': level,
-        'lastCheckInDate': yes_date,
+        'lastCheckInDate': None,
         'referralCount': 0,
         'referralCode': referral_code,
         'streak': 0,
@@ -195,7 +192,7 @@ def checkin(data=None):
 
     if user_data['lastCheckInDate'] == today_date:
         return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
-    elif user_data['lastCheckInDate'] != yes_date:
+    elif user_data['lastCheckInDate'] != None:
         msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
         user_data['level'] = 1
         user_data['streak'] = 1
@@ -276,7 +273,7 @@ def oauth2callback():
 
 # Route to save a contact to Google Contacts
 @app.route('/save', methods=['POST'])
-def save(number):
+def save(number):    
     number = ''.join([char for char in number if char.isdigit()])
     id = "Z" + number[2:7]
 

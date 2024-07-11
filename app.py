@@ -189,20 +189,23 @@ def checkin(data=None):
     yesterday = now - timedelta(days=1)
     yes_date = yesterday.strftime('%Y-%m-%d')
 
-    if user_data['lastCheckInDate'] == today_date:
+    last =  user_data['lastCheckInDate']
+    if last == today_date:
         return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
-    elif user_data['lastCheckInDate'] != None:
-        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
-        user_data['level'] = 1
-        user_data['streak'] = 1
-        user_data['lastCheckInDate'] = today_date
-    else:
+        # beginner or yes date
+    elif last == yes_date or last =="None" or last==None or user_data['best_streak']==0:
         user_data['level'] += 1
         user_data['lastCheckInDate'] = today_date
         user_data['streak'] += 1
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
         msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡"
+    # older date
+    else:
+        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
+        user_data['level'] = 1
+        user_data['streak'] = 1
+        user_data['lastCheckInDate'] = today_date
 
     db.reference('users').child(list(user_snapshot.keys())[0]).update(user_data)
 

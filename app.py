@@ -146,8 +146,8 @@ def info(data= None):
         return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
     
     # either not saved or contact not registered 
-    notSaved = user_identifier.startswith('~') or not user_snapshot
-    if notSaved:
+    notSaved = user_identifier.startswith('~')
+    if notSaved or not user_snapshot:
         return jsonify({"replies": [{"message": "1. Please register on my DM first\n2. If already done try after a minute\n3. Still having issues? message me directly"}]}), 200
 
     user_data = list(user_snapshot.values())[0]
@@ -179,8 +179,8 @@ def checkin(data=None):
         return jsonify({"replies": [{"message": "Commands like info and checkin should be done on group"}]}), 200
 
     # either not saved or contact not registered 
-    notSaved = user_identifier.startswith('~') or not user_snapshot
-    if notSaved:
+    notSaved = user_identifier.startswith('~')
+    if notSaved or not user_snapshot:
         return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
     
     user_data = list(user_snapshot.values())[0]

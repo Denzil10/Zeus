@@ -108,6 +108,9 @@ def register(data=None):
     # save unknown numbers
     if notSaved:
         contact_status = save(user_identifier)
+        if not contact_status:
+            return jsonify({"replies": [{"message": "could not save contact"}]}), 400
+        
     user_data = {
         'identifier': id,
         'username': username,

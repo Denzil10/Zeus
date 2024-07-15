@@ -200,7 +200,7 @@ def checkin(data=None):
         return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
         # beginner or yes date
     elif last == yes_date or last =="None" or last==None or user_data['bestStreak']==0:
-        user_data['level ']+= 1
+        user_data['level']+= 1
         user_data['streak'] += 1
         user_data['lastCheckInDate'] = today_date
         if user_data['streak'] > user_data['bestStreak']:

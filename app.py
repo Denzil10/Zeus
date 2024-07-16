@@ -340,7 +340,7 @@ def leaderboard():
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200
 
 @app.route('/media', methods=['POST'])
-def save():   
+def media():   
     data = request.json
     print(data)
 

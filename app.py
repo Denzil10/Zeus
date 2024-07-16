@@ -367,7 +367,7 @@ def route_message():
         return register(data)
     elif first_word == 'info':
         return info(data)
-    elif first_word == 'checkin':
+    elif first_word == 'checkin' or "📷":
         return checkin(data)
     elif first_word == 'leaderboardroot':
         return leaderboard()

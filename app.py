@@ -196,23 +196,25 @@ def checkin(data=None):
     yes_date = yesterday_ist.strftime('%Y-%m-%d')
     
     # check action bonus
-    bonus = ""
+    bonus = 0
+    bonus_msg = ""
     message = query.get('message')
     if message == "📷 photo":
-        bonus = "Fitness Boost +1 🏋️‍♂️\n"
+        bonus = 1
+        bonus_msg = "Fitness Boost +1 🏋️‍♂️\n"
 
     last =  user_data['lastCheckInDate']
     if last == today_date:
         return jsonify({"replies": [{"message": "Next check-in will be tomorrow"}]}), 200
         # beginner or yes date
     elif last == yes_date or last =="None" or last==None or user_data['bestStreak']==0:
-        user_data['level']+= 1
+        user_data['level']+= 1 + bonus
         user_data['streak'] += 1
         user_data['lastCheckInDate'] = today_date
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
         # msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡{bonus}"
-        msg = f"{bonus}{user_data['username']} level {user_data['level']}⚡"
+        msg = f"{bonus_msg}{user_data['username']} level {user_data['level']}⚡"
         
 
     # older date

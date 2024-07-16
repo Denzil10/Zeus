@@ -194,6 +194,12 @@ def checkin(data=None):
     today_date = now_ist.strftime('%Y-%m-%d')
     yesterday_ist = now_ist - timedelta(days=1)
     yes_date = yesterday_ist.strftime('%Y-%m-%d')
+    
+    # check action bonus
+    bonus = ""
+    message = query.get('message')
+    if message == "📷 photo":
+        bonus = "Fitness Boost +1 🏋️‍♂️"
 
     last =  user_data['lastCheckInDate']
     if last == today_date:
@@ -205,10 +211,13 @@ def checkin(data=None):
         user_data['lastCheckInDate'] = today_date
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
-        msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡"
+        # msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡{bonus}"
+        msg = f"{bonus}\n{user_data['username']} level {user_data['level']}⚡"
+        
+
     # older date
     else:
-        msg = f"🐣Oops! {user_data['username']}'s streak was broken at lvl {user_data['level']}🐣\nStarting from lvl 1"
+        msg = f"🐣Oops! streak broken at lvl {user_data['level']}🐣\n{user_data['username']}'s level 1"
         user_data['level'] = 1
         user_data['streak'] = 1
         user_data['lastCheckInDate'] = today_date

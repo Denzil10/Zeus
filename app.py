@@ -199,7 +199,8 @@ def checkin(data=None):
     bonus = 0
     bonus_msg = ""
     message = query.get('message')
-    if message == "📷 photo":
+    start = message.split()[0] if message else ''
+    if start == "📷":
         bonus = 1
         bonus_msg = "Fitness Boost +1 🏋️‍♂️\n"
 

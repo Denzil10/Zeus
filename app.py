@@ -328,6 +328,22 @@ def leaderboard():
 
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200
 
+@app.route('/media', methods=['POST'])
+def save():   
+    data = request.json
+    print(data)
+
+    # user_identifier = get_user(query)
+    # users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
+    # user_snapshot = users_ref.get()
+    
+    # either not saved or contact not registered 
+    # notSaved = user_identifier.startswith('~')
+    # if notSaved or not user_snapshot:
+        # return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
+    
+    return jsonify({"replies": [{"message": "media received"}]}), 200
+
 
 @app.route('/any', methods=['POST'])
 def route_message():

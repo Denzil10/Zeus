@@ -199,7 +199,7 @@ def checkin(data=None):
     bonus = ""
     message = query.get('message')
     if message == "📷 photo":
-        bonus = "Fitness Boost +1 🏋️‍♂️"
+        bonus = "Fitness Boost +1 🏋️‍♂️\n"
 
     last =  user_data['lastCheckInDate']
     if last == today_date:
@@ -212,7 +212,7 @@ def checkin(data=None):
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
         # msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡{bonus}"
-        msg = f"{bonus}\n{user_data['username']} level {user_data['level']}⚡"
+        msg = f"{bonus}{user_data['username']} level {user_data['level']}⚡"
         
 
     # older date

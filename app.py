@@ -68,7 +68,7 @@ def register(data=None):
     query = data.get('query')
     
     if query.get('isGroup'):
-        return jsonify({"replies": [{"message": "Register message should be directly send to Zeus bot"}]}), 200
+        return jsonify({"replies": [{"message": "Register message should be directly send to Admin"}]}), 200
     
     message = query.get('message', '')
     username_match = re.search(r"register:\s*(\w+)", message)
@@ -152,7 +152,7 @@ def info(data= None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~')
     if notSaved or not user_snapshot:
-        return jsonify({"replies": [{"message": "1. Please register on my DM first\n2. If already done try after a minute\n3. Still having issues? message me directly"}]}), 200
+        return jsonify({"replies": [{"message": "1. Please register on my DM first\n2. If already done try after a minute\n3. Still having issues? message me"}]}), 200
 
     user_data = list(user_snapshot.values())[0]
 
@@ -202,7 +202,7 @@ def checkin(data=None):
     start = message.split()[0] if message else ''
     if start == "📷":
         bonus = 1
-        bonus_msg = "Fitness Boost +1 🏋️‍♂️\n"
+        bonus_msg = "fitness boost granted🏋️‍♂️\n"
 
     last =  user_data['lastCheckInDate']
     if last == today_date:
@@ -220,7 +220,7 @@ def checkin(data=None):
 
     # older date
     else:
-        msg = f"🐣Oops! streak broken at lvl {user_data['level']}🐣\n{user_data['username']}'s level 1"
+        msg = f"🐣Oops! streak broken at level {user_data['level']}🐣\n{user_data['username']} level 1"
         user_data['level'] = 1
         user_data['streak'] = 1
         user_data['lastCheckInDate'] = today_date

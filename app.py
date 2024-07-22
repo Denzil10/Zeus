@@ -318,7 +318,6 @@ def save(number):
     
 @app.route('/leaderboard', methods=['GET'])
 def leaderboard():
-    return jsonify({"replies": [{"message": "leader point"}]}), 200
     # Fetch all users from the database
     users_ref = db.reference('users')
     users_snapshot = users_ref.get()

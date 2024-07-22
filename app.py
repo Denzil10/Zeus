@@ -198,11 +198,11 @@ def checkin(data=None):
     # check action bonus
     bonus = 0
     bonus_msg = ""
-    # message = query.get('message')
-    # start = message.split()[0] if message else ''
-    # if start == "📷":
-    #     bonus = 1
-    #     bonus_msg = "fitness boost granted🏋️‍♂️\n"
+    message = query.get('message')
+    start = message.split()[0] if message else ''
+    if start == "📷":
+        bonus = 1
+        bonus_msg = "Rewind level boost🍿\n"
 
     last =  user_data['lastCheckInDate']
     if last == today_date:

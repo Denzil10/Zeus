@@ -316,7 +316,7 @@ def save(number):
         print(f"Error saving contact: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 400
     
-@app.route('/leaderboard', methods=['GET'])
+@app.route('/leaderboard', methods=['POST'])
 def leaderboard():
    
     # Fetch all users from the database

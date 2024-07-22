@@ -371,7 +371,7 @@ def route_message():
         return info(data)
     elif first_word == 'checkin' or "📷":
         return checkin(data)
-    elif first_word == 'leaderboardroot':
+    elif first_word == '':
         return leaderboard()
     else:
         return jsonify({"replies": [{"message": f"Invalid command, please refer manual\nYou can discuss on general group " }]}), 200

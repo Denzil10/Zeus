@@ -221,7 +221,7 @@ def checkin(data=None):
 
     # older date
     else:
-        msg = f"🐣Oops! streak broken at level {user_data['level']}🐣\n{user_data['username']} level 1"
+        msg = f"🐣Oops!🐣\nstreak broken at level {user_data['level']}\n{user_data['username']} level 1"
         user_data['level'] = 1
         user_data['streak'] = 1
         user_data['lastCheckInDate'] = today_date

@@ -185,7 +185,8 @@ def checkin(data=None):
     # either not saved or contact not registered 
     notSaved = user_identifier.startswith('~')
     if notSaved or not user_snapshot:
-        return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
+        return jsonify({"replies": [{"message": "1. Please register on my DM first\n2. If already done try after a minute\n3. Still having issues? message me"}]}), 200
+
     
     user_data = list(user_snapshot.values())[0]
     now_utc = datetime.now(pytz.utc)
@@ -371,7 +372,7 @@ def route_message():
         return info(data)
     elif first_word == 'leaderboardroot':
         return leaderboard()
-    elif first_word == 'checkin' or "📷":
+    elif first_word == 'checkin' first_word == "📷":
         return checkin(data)
     else:
         return jsonify({"replies": [{"message": f"Invalid command, please refer manual\nYou can discuss on general group " }]}), 200

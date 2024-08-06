@@ -287,7 +287,7 @@ def oauth2callback():
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    # print(f"referesh {credentials.refresh_token}")
+    # print(f"refresh {credentials.refresh_token}")
     save_credentials(credentials)
 
     return jsonify({"message": f"Authorization successful, credentials saved with refresh {credentials.refresh_token}"}), 200
@@ -367,14 +367,14 @@ def steps():
     ist_timezone = pytz.timezone('Asia/Kolkata')
     now_ist = now_utc.astimezone(ist_timezone)
     start_of_day = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
     # Convert to ISO format
     start_of_day_iso = start_of_day.isoformat()
     now_iso = now_ist.isoformat()
 
     # Convert ISO to milliseconds since epoch
-    start_time_millis = int(datetime.fromisoformat(start_of_day_iso[:-1]).timestamp() * 1000)
-    end_time_millis = int(datetime.fromisoformat(now_iso[:-1]).timestamp() * 1000)
+    start_time_millis = int(start_of_day.timestamp() * 1000)
+    end_time_millis = int(now_ist.timestamp() * 1000)
 
     data_source = "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
     url = 'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate'

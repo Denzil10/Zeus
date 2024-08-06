@@ -1,4 +1,4 @@
-import os
+zimport os
 import json
 from flask import Flask, request, jsonify, session, redirect, url_for
 import firebase_admin
@@ -359,11 +359,22 @@ def leaderboard():
 def steps():
     credentials = load_credentials()
     headers = {
-        'Authorization': 'Bearer {}'.format(credentials.token)
+        'Authorization': f'Bearer {credentials.token}'
     }
-    now = datetime.datetime.utcnow().isoformat() + 'Z'
-    start_of_day = datetime.datetime.utcnow().replace(
-        hour=0, minute=0, second=0, microsecond=0).isoformat() + 'Z'
+
+    # Get current time in IST and start of the day
+    now_utc = datetime.now(pytz.utc)
+    ist_timezone = pytz.timezone('Asia/Kolkata')
+    now_ist = now_utc.astimezone(ist_timezone)
+    start_of_day = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Convert to ISO format
+    start_of_day_iso = start_of_day.isoformat()
+    now_iso = now_ist.isoformat()
+
+    # Convert ISO to milliseconds since epoch
+    start_time_millis = int(datetime.fromisoformat(start_of_day_iso[:-1]).timestamp() * 1000)
+    end_time_millis = int(datetime.fromisoformat(now_iso[:-1]).timestamp() * 1000)
 
     data_source = "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
     url = 'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate'
@@ -373,8 +384,8 @@ def steps():
             "dataSourceId": data_source
         }],
         "bucketByTime": {"durationMillis": 86400000},
-        "startTimeMillis": int(datetime.datetime.strptime(start_of_day, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp() * 1000),
-        "endTimeMillis": int(datetime.datetime.strptime(now, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp() * 1000)
+        "startTimeMillis": start_time_millis,
+        "endTimeMillis": end_time_millis
     }
 
     response = requests.post(url, headers=headers, json=body)

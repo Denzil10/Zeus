@@ -216,8 +216,15 @@ def checkin(data=None):
         user_data['lastCheckInDate'] = today_date
         if user_data['streak'] > user_data['bestStreak']:
             user_data['bestStreak'] = user_data['streak']
-        # msg = f"⚡{user_data['username']} reached level {user_data['level']}⚡{bonus}"
+            
         msg = f"{bonus_msg}{user_data['username']} level {user_data['level']}⚡"
+        response = requests.get('http://zeus-swart-alpha.vercel.app/steps')
+        if response.status_code == 200:
+            steps = int(response.text)
+            action = f"\n🚶Steps walked today: {steps}"
+            msg += action
+        else:
+            print(f"An error occurred: {response.text}")
         
 
     # older date
@@ -399,7 +406,7 @@ def steps():
             for point in dataset.get('point', []):
                 steps += point.get('value', [{}])[0].get('intVal', 0)
 
-    return f"Steps walked today: {steps}"
+    return str(steps)
 
 @app.route('/any', methods=['POST'])
 def route_message():

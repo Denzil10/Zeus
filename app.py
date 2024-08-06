@@ -316,7 +316,20 @@ def save(number):
     except Exception as e:
         print(f"Error saving contact: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 400
-    
+        
+@app.route('/usage', methods=['GET'])
+def usage():    
+    try:
+        credentials = load_credentials()
+        if not credentials or not credentials.valid:
+            raise RuntimeError("Credentials not valid")
+
+        service = build('people', 'v1', credentials=credentials)
+        user_info = service.people().get(resourceName='people/me', personFields='names,emailAddresses').execute()
+        return jsonify(user_info) 
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
 @app.route('/leaderboard', methods=['POST'])
 def leaderboard():
    

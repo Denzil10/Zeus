@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 from flask import Flask, request, jsonify, session, redirect, url_for
 import firebase_admin
 from firebase_admin import credentials, db
@@ -388,7 +389,7 @@ def steps():
         "endTimeMillis": end_time_millis
     }
 
-    response = request.post(url, headers=headers, json=body)
+    response = requests.post(url, headers=headers, json=body)
     if response.status_code != 200:
         return f"An error occurred: {response.text}"
 

@@ -388,7 +388,7 @@ def steps():
         "endTimeMillis": end_time_millis
     }
 
-    response = requests.post(url, headers=headers, json=body)
+    response = request.post(url, headers=headers, json=body)
     if response.status_code != 200:
         return f"An error occurred: {response.text}"
 

@@ -355,22 +355,39 @@ def leaderboard():
 
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200
 
-@app.route('/media', methods=['POST'])
-def media():   
-    data = request.json
-    print(data)
+@app.route('/steps')
+def steps():
+    credentials = load_credentials()
+    headers = {
+        'Authorization': 'Bearer {}'.format(credentials.token)
+    }
+    now = datetime.datetime.utcnow().isoformat() + 'Z'
+    start_of_day = datetime.datetime.utcnow().replace(
+        hour=0, minute=0, second=0, microsecond=0).isoformat() + 'Z'
 
-    # user_identifier = get_user(query)
-    # users_ref = db.reference('users').order_by_child('identifier').equal_to(user_identifier)
-    # user_snapshot = users_ref.get()
-    
-    # either not saved or contact not registered 
-    # notSaved = user_identifier.startswith('~')
-    # if notSaved or not user_snapshot:
-        # return jsonify({"replies": [{"message": "Please register on DM first. If you have just done it wait for some time as onboarding can take upto 2 minutes.\nStill having issues? message \"help\" to the bot"}]}), 200
-    
-    return jsonify({"replies": [{"message": "media received"}]}), 200
+    data_source = "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
+    url = 'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate'
+    body = {
+        "aggregateBy": [{
+            "dataTypeName": "com.google.step_count.delta",
+            "dataSourceId": data_source
+        }],
+        "bucketByTime": {"durationMillis": 86400000},
+        "startTimeMillis": int(datetime.datetime.strptime(start_of_day, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp() * 1000),
+        "endTimeMillis": int(datetime.datetime.strptime(now, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp() * 1000)
+    }
 
+    response = requests.post(url, headers=headers, json=body)
+    if response.status_code != 200:
+        return f"An error occurred: {response.text}"
+
+    steps = 0
+    for bucket in response.json().get('bucket', []):
+        for dataset in bucket.get('dataset', []):
+            for point in dataset.get('point', []):
+                steps += point.get('value', [{}])[0].get('intVal', 0)
+
+    return f"Steps walked today: {steps}"
 
 @app.route('/any', methods=['POST'])
 def route_message():

@@ -218,7 +218,7 @@ def checkin(data=None):
             user_data['bestStreak'] = user_data['streak']
             
         msg = f"{bonus_msg}{user_data['username']} level {user_data['level']}⚡"
-        if user_identifier = "Z9196":
+        if user_identifier == "Z9196":
             response = requests.get('http://zeus-swart-alpha.vercel.app/steps')
             if response.status_code == 200:
                 steps = int(response.text) + 3000

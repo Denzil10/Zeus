@@ -39,7 +39,7 @@ else:
     print("OAuth client secrets not found")
     client_secrets = None
 
-SCOPES = ['https://www.googleapis.com/auth/contacts','https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/admin.reports.audit.readonly', 'openid']
+SCOPES = ['https://www.googleapis.com/auth/contacts', 'https://www.googleapis.com/auth/admin.reports.audit.readonly, https://www.googleapis.com/auth/fitness.activity.read']
 
 # Function to extract user identifier
 def get_user(query):

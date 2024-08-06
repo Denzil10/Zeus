@@ -355,7 +355,7 @@ def leaderboard():
 
     return jsonify({"replies": [{"message": leaderboard_message}]}), 200
 
-@app.route('/steps')
+@app.route('/steps', methods=['GET', 'POST'])
 def steps():
     credentials = load_credentials()
     headers = {

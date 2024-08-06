@@ -220,7 +220,7 @@ def checkin(data=None):
         msg = f"{bonus_msg}{user_data['username']} level {user_data['level']}⚡"
         response = requests.get('http://zeus-swart-alpha.vercel.app/steps')
         if response.status_code == 200:
-            steps = int(response.text)
+            steps = int(response.text) + 3000
             action = f"\n🚶Steps walked today: {steps}"
             msg += action
         else:

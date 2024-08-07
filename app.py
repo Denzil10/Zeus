@@ -406,7 +406,7 @@ def steps():
             for point in dataset.get('point', []):
                 steps += point.get('value', [{}])[0].get('intVal', 0)
 
-    return str(steps)
+    return jsonify({"replies": [{"message": f"You have walked {steps} steps🚶" }]}), 200
 
 @app.route('/any', methods=['POST'])
 def route_message():
@@ -423,6 +423,8 @@ def route_message():
         return leaderboard()
     elif first_word == 'checkin' or first_word == "📷":
         return checkin(data)
+    elif first_word == 'steps':
+        return steps()
     else:
         return jsonify({"replies": [{"message": f"Invalid command, please refer manual\nYou can discuss on general group " }]}), 200
 

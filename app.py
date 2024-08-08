@@ -222,7 +222,7 @@ def checkin(data=None):
             response = requests.get('http://zeus-swart-alpha.vercel.app/steps')
             if response.status_code == 200:
                 steps = int(response.text) + 3000
-                action = f"\n🚶Steps walked today: {steps}"
+                action = f"\nSteps walked: {steps}/7000🚶"
                 msg += action
             else:
                 print(f"An error occurred: {response.text}")

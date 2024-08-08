@@ -260,7 +260,7 @@ def load_credentials():
             client_id=stored_credentials['client_id'],
             client_secret=stored_credentials['client_secret']
         )
-        if credentials.expired and credentials.refresh_token:
+        if not credentials.valid:
             credentials.refresh(Request())
             save_credentials(credentials)
         return credentials
@@ -295,7 +295,6 @@ def oauth2callback():
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    # print(f"refresh {credentials.refresh_token}")
     save_credentials(credentials)
 
     return jsonify({"message": f"Authorization successful, credentials saved with refresh {credentials.refresh_token}"}), 200

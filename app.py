@@ -221,7 +221,10 @@ def checkin(data=None):
         if user_identifier == "Z9196":
             response = requests.get('http://zeus-swart-alpha.vercel.app/steps')
             if response.status_code == 200:
-                steps = int(response.text) + 3000
+                response_json = response.json()  # Convert to JSON
+                steps_extracted = int(response_json["replies"][0]["message"].split()[3])
+                steps = steps_extracted + 1000
+
                 action = f"\nSteps walked: {steps}/7000🚶"
                 msg += action
             else:
